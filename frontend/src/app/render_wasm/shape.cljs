@@ -122,7 +122,14 @@
       :opacity      (api/set-shape-opacity v)
       :hidden       (api/set-shape-hidden v)
       :shapes       (api/set-shape-children v)
-      :content      (api/set-shape-path-content v)
+      :svg-attrs    (when (= (:type self) :path)
+                      (api/set-shape-path-attrs v))
+      :content      (cond
+                      (= (:type self) :path)
+                      (api/set-shape-path-content v)
+
+                      (= (:type self) :svg-raw)
+                      (api/set-shape-svg-raw-content (api/get-static-markup self)))
       nil)
     ;; when something synced with wasm
     ;; is modified, we need to request

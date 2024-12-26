@@ -1,5 +1,6 @@
 use crate::math;
 use skia_safe as skia;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::render::{BlendMode, Renderable};
@@ -10,18 +11,21 @@ mod matrix;
 mod paths;
 mod renderable;
 mod strokes;
+mod svgraw;
 
 pub use fills::*;
 pub use images::*;
 use matrix::*;
 pub use paths::*;
 pub use strokes::*;
+pub use svgraw::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Kind {
     Rect(math::Rect),
     Circle(math::Rect),
     Path(Path),
+    SVGRaw(SVGRaw),
 }
 
 pub type Color = skia::Color;
@@ -41,6 +45,7 @@ pub struct Shape {
     blend_mode: BlendMode,
     opacity: f32,
     hidden: bool,
+    svg_attrs: HashMap<String, String>,
 }
 
 impl Shape {
@@ -58,6 +63,7 @@ impl Shape {
             blend_mode: BlendMode::default(),
             opacity: 1.,
             hidden: false,
+            svg_attrs: HashMap::new(),
         }
     }
 
@@ -173,8 +179,26 @@ impl Shape {
         Ok(())
     }
 
+    pub fn set_path_attr(&mut self, name: String, value: String) {
+        match &mut self.kind {
+            Kind::Path(_) => {
+                self.set_svg_attr(name, value);
+            }
+            Kind::Rect(_) | Kind::Circle(_) | Kind::SVGRaw(_) => todo!(),
+        };
+    }
+
+    pub fn set_svg_raw_content(&mut self, content: String) -> Result<(), String> {
+        self.kind = Kind::SVGRaw(SVGRaw::from_content(content));
+        Ok(())
+    }
+
     pub fn set_blend_mode(&mut self, mode: BlendMode) {
         self.blend_mode = mode;
+    }
+
+    pub fn set_svg_attr(&mut self, name: String, value: String) {
+        self.svg_attrs.insert(name, value);
     }
 
     fn to_path_transform(&self) -> Option<skia::Matrix> {

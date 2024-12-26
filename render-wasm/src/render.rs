@@ -1,7 +1,6 @@
-use std::collections::HashMap;
-
 use skia::Contains;
 use skia_safe as skia;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::math;
@@ -31,6 +30,7 @@ pub trait Renderable {
     fn hidden(&self) -> bool;
     fn clip(&self) -> bool;
     fn children_ids(&self) -> Vec<Uuid>;
+    fn is_recursive(&self) -> bool;
 }
 
 pub(crate) struct CachedSurfaceImage {
@@ -188,6 +188,7 @@ impl RenderState {
             skia::SamplingOptions::new(skia::FilterMode::Linear, skia::MipmapMode::Nearest),
             Some(&paint),
         );
+
         self.drawing_surface
             .canvas()
             .clear(skia::Color::TRANSPARENT);
@@ -318,43 +319,49 @@ impl RenderState {
 
     // Returns a boolean indicating if the viewbox contains the rendered shapes
     fn render_shape_tree(&mut self, root_id: &Uuid, tree: &HashMap<Uuid, impl Renderable>) -> bool {
-        let element = tree.get(&root_id).unwrap();
-        let mut is_complete = self.viewbox.area.contains(element.bounds());
+        if let Some(element) = tree.get(&root_id) {
+            let mut is_complete = self.viewbox.area.contains(element.bounds());
 
-        if !root_id.is_nil() {
-            if !element.bounds().intersects(self.viewbox.area) || element.hidden() {
-                self.render_debug_element(element, false);
-                // TODO: This means that not all the shapes are renderer so we
-                // need to call a render_all on the zoom out.
-                return is_complete; // TODO return is_complete or return false??
-            } else {
-                self.render_debug_element(element, true);
+            if !root_id.is_nil() {
+                if !element.bounds().intersects(self.viewbox.area) || element.hidden() {
+                    self.render_debug_element(element, false);
+                    // TODO: This means that not all the shapes are renderer so we
+                    // need to call a render_all on the zoom out.
+                    return is_complete; // TODO return is_complete or return false??
+                } else {
+                    self.render_debug_element(element, true);
+                }
             }
-        }
 
-        // This is needed so the next non-children shape does not carry this shape's transform
-        self.final_surface.canvas().save();
-        self.drawing_surface.canvas().save();
+            // This is needed so the next non-children shape does not carry this shape's transform
+            self.final_surface.canvas().save();
+            self.drawing_surface.canvas().save();
 
-        if !root_id.is_nil() {
-            self.render_single_element(element);
-            if element.clip() {
-                self.drawing_surface.canvas().clip_rect(
-                    element.bounds(),
-                    skia::ClipOp::Intersect,
-                    true,
-                );
+            if !root_id.is_nil() {
+                self.render_single_element(element);
+                if element.clip() {
+                    self.drawing_surface.canvas().clip_rect(
+                        element.bounds(),
+                        skia::ClipOp::Intersect,
+                        true,
+                    );
+                }
             }
+
+            // draw all the children shapes
+            if element.is_recursive() {
+                for id in element.children_ids() {
+                    is_complete = self.render_shape_tree(&id, tree) && is_complete;
+                }
+            }
+
+            self.final_surface.canvas().restore();
+            self.drawing_surface.canvas().restore();
+
+            return is_complete;
+        } else {
+            eprintln!("Error: Element with root_id {root_id} not found in the tree.");
+            return false;
         }
-
-        // draw all the children shapes
-        for id in element.children_ids() {
-            is_complete = self.render_shape_tree(&id, tree) && is_complete;
-        }
-
-        self.final_surface.canvas().restore();
-        self.drawing_surface.canvas().restore();
-
-        return is_complete;
     }
 }
