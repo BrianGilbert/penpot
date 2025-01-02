@@ -525,6 +525,7 @@ pub extern "C" fn clear_shape_strokes() {
     }
 }
 
+#[no_mangle]
 pub extern "C" fn set_shape_path_attrs(num_attrs: u32) {
     let state = unsafe { STATE.as_mut() }.expect("Got an invalid state pointer");
 
