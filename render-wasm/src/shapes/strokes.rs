@@ -1,6 +1,7 @@
 use crate::math;
 use crate::shapes::fills::Fill;
 use skia_safe as skia;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum StrokeStyle {
@@ -103,16 +104,28 @@ impl Stroke {
         }
     }
 
-    pub fn to_paint(&self, rect: &math::Rect) -> skia::Paint {
+    pub fn to_paint(&self, rect: &math::Rect, svg_attrs: &HashMap<String, String>) -> skia::Paint {
         let mut paint = self.fill.to_paint(rect);
         paint.set_style(skia::PaintStyle::Stroke);
         paint.set_stroke_width(self.width);
         paint.set_anti_alias(true);
+
+        if let Some("round") = svg_attrs.get("stroke-linecap").map(String::as_str) {
+            paint.set_stroke_cap(skia::paint::Cap::Round);
+        }
+        if let Some("round") = svg_attrs.get("stroke-linejoin").map(String::as_str) {
+            paint.set_stroke_join(skia::paint::Join::Round);
+        }
+
         paint
     }
 
-    pub fn to_stroked_paint(&self, rect: &math::Rect) -> skia::Paint {
-        let mut paint = self.to_paint(rect);
+    pub fn to_stroked_paint(
+        &self,
+        rect: &math::Rect,
+        svg_attrs: &HashMap<String, String>,
+    ) -> skia::Paint {
+        let mut paint = self.to_paint(rect, svg_attrs);
         match self.kind {
             StrokeKind::InnerStroke => {
                 paint.set_stroke_width(2. * self.width);
