@@ -19,9 +19,12 @@ use matrix::*;
 pub use paths::*;
 pub use strokes::*;
 
+pub type CornerRadius = skia::Point;
+pub type Corners = [CornerRadius; 4];
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Kind {
-    Rect(math::Rect),
+    Rect(math::Rect, Option<Corners>),
     Circle(math::Rect),
     Path(Path),
     Bool(BoolType, Path),
@@ -51,7 +54,7 @@ impl Shape {
         Self {
             id,
             children: Vec::<Uuid>::new(),
-            kind: Kind::Rect(math::Rect::new_empty()),
+            kind: Kind::Rect(math::Rect::new_empty(), None),
             selrect: math::Rect::new_empty(),
             transform: Matrix::identity(),
             rotation: 0.,
@@ -71,8 +74,8 @@ impl Shape {
     pub fn set_selrect(&mut self, left: f32, top: f32, right: f32, bottom: f32) {
         self.selrect.set_ltrb(left, top, right, bottom);
         match self.kind {
-            Kind::Rect(_) => {
-                self.kind = Kind::Rect(self.selrect.to_owned());
+            Kind::Rect(_, corners) => {
+                self.kind = Kind::Rect(self.selrect.to_owned(), corners);
             }
             Kind::Circle(_) => {
                 self.kind = Kind::Circle(self.selrect.to_owned());
@@ -196,6 +199,28 @@ impl Shape {
         };
 
         self.kind = kind;
+    }
+
+    pub fn set_corners(&mut self, raw_corners: (f32, f32, f32, f32)) {
+        let (r1, r2, r3, r4) = raw_corners;
+        let are_straight_corners = r1.abs() <= f32::EPSILON
+            && r2.abs() <= f32::EPSILON
+            && r3.abs() <= f32::EPSILON
+            && r4.abs() <= f32::EPSILON;
+
+        let corners = if are_straight_corners {
+            None
+        } else {
+            Some([
+                (r1, r1).into(),
+                (r2, r2).into(),
+                (r3, r3).into(),
+                (r4, r4).into(),
+            ])
+        };
+
+        self.kind = Kind::Rect(self.selrect, corners);
+        println!("Set corners: {:?}", self.kind);
     }
 
     fn to_path_transform(&self) -> Option<skia::Matrix> {

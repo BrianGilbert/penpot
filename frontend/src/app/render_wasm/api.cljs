@@ -364,6 +364,14 @@
   [content]
   (set-shape-path-content content))
 
+(defn set-shape-corners
+  [corners]
+  (let [r1 (or (get corners 0) 0)
+        r2 (or (get corners 1) 0)
+        r3 (or (get corners 2) 0)
+        r4 (or (get corners 3) 0)]
+    (h/call internal-module "_set_shape_corners" r1 r2 r3 r4)))
+
 (def debounce-render-without-cache (fns/debounce render-without-cache 100))
 
 (defn set-view
@@ -395,6 +403,11 @@
                   opacity      (dm/get-prop shape :opacity)
                   hidden       (dm/get-prop shape :hidden)
                   content      (dm/get-prop shape :content)
+                  corners      (when (some? (dm/get-prop shape :r1))
+                                 [(dm/get-prop shape :r1)
+                                  (dm/get-prop shape :r2)
+                                  (dm/get-prop shape :r3)
+                                  (dm/get-prop shape :r4)])
                   bool-content (dm/get-prop shape :bool-content)]
 
               (use-shape id)
@@ -409,6 +422,7 @@
               (set-shape-hidden hidden)
               (when (and (some? content) (= type :path)) (set-shape-path-content content))
               (when (some? bool-content) (set-shape-bool-content bool-content))
+              (when (some? corners) (set-shape-corners corners))
               (let [pending' (concat (set-shape-fills fills) (set-shape-strokes strokes))]
                 (recur (inc index) (into pending pending'))))
             pending))]
