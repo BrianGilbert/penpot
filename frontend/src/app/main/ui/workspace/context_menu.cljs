@@ -143,7 +143,20 @@
         do-cut            #(st/emit! (dw/copy-selected)
                                      (dw/delete-selected))
         do-paste          #(st/emit! (dw/paste-from-clipboard))
-        do-duplicate      #(st/emit! (dw/duplicate-selected true))]
+        do-duplicate      #(st/emit! (dw/duplicate-selected true))
+
+        handle-copy-css
+        (mf/use-callback #(st/emit! (dw/copy-selected-css)))
+
+        handle-copy-css-nested
+        (mf/use-callback #(st/emit! (dw/copy-selected-css-nested)))
+
+        handle-copy-props
+        (mf/use-callback #(st/emit! (dw/copy-selected-props)))
+
+        handle-paste-props
+        (mf/use-callback #(st/emit! (dw/paste-selected-props)))]
+
     [:*
      [:> menu-entry* {:title (tr "workspace.shape.menu.copy")
                       :shortcut (sc/get-tooltip :copy)
@@ -160,6 +173,21 @@
      [:> menu-entry* {:title (tr "workspace.shape.menu.duplicate")
                       :shortcut (sc/get-tooltip :duplicate)
                       :on-click do-duplicate}]
+
+     [:> menu-entry* {:title (tr "workspace.shape.menu.copy_paste_as")}
+      [:> menu-entry* {:title (tr "workspace.shape.menu.copy_css")
+                       :on-click handle-copy-css}]
+      [:> menu-entry* {:title (tr "workspace.shape.menu.copy_css_nested")
+                       :on-click handle-copy-css-nested}]
+
+      [:> menu-separator* {}]
+
+      [:> menu-entry* {:title (tr "workspace.shape.menu.copy_props")
+                       :shortcut (sc/get-tooltip :copy-props)
+                       :on-click handle-copy-props}]
+      [:> menu-entry* {:title (tr "workspace.shape.menu.paste_props")
+                       :shortcut (sc/get-tooltip :paste-props)
+                       :on-click handle-paste-props}]]
 
      [:> menu-separator* {}]]))
 

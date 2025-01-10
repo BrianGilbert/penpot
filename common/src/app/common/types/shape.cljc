@@ -570,3 +570,72 @@
      :class Shape
      :wfn fres/write-map-like
      :rfn (comp map->Shape fres/read-map-like)}))
+
+;; --- SHAPE COPY/PASTE PROPS
+
+;; Copy/paste properties:
+;;  - [x] Fill
+;;  - [x] Stroke
+;;  - [x] Opacity
+;;  - [ ] Layout (Grid & Flex)
+;;  - [ ] Flex element
+;;  - [ ] Flex board
+;;  - [ ] Text properties
+;;  - [x] Contraints
+;;  - [x] Shadow
+;;  - [x] Blur
+;;  - [x] Border radius
+(defn extract-props
+  "Retrieves an object with the 'pasteable' properties for a shape."
+  [shape]
+
+  (select-keys shape
+               [:fills
+                :strokes
+                :opacity
+
+                ;; Flex/Grid props
+                ;; :layout-flex-dir
+                ;; :layout-gap-type
+                ;; :layout-gap
+                ;; :layout-align-items
+                ;; :layout-align-content
+                ;; :layout-justify-items
+                ;; :layout-justify-content
+                ;; :layout-wrap-type
+                ;; :layout-padding-type
+                ;; :layout-padding
+                ;; :layout-grid-rows
+                ;; :layout-grid-columns
+                ;; :layout-grid-cells
+                ;; :layout-item-margin
+                ;; :layout-item-margin-type
+                ;; :layout-item-h-sizing
+                ;; :layout-item-v-sizing
+                ;; :layout-item-max-h
+                ;; :layout-item-min-h
+                ;; :layout-item-max-w
+                ;; :layout-item-min-w
+                ;; :layout-item-absolute
+                ;; :layout-item-z-index
+
+                ;; Text properties
+
+                ;; Constraints
+                :constraints-h
+                :constraints-v
+
+                :shadow
+                :blur
+
+                ;; Radius
+                :r1
+                :r2
+                :r3
+                :r4
+                ]))
+
+(defn patch-props
+  "Given the object of `extract-props` applies it to a shape. Adapt the shape if necesary"
+  [shape props]
+  (d/patch-object shape props))

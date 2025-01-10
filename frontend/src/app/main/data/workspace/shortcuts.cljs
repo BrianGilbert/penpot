@@ -103,6 +103,16 @@
                           :subsections [:edit]
                           :fn (constantly nil)}
 
+   :copy-props           {:tooltip (ds/meta (ds/alt "c"))
+                          :command (ds/c-mod "alt+c")
+                          :subsections [:edit]
+                          :fn #(st/emit! (dw/copy-selected-props))}
+
+   :paste-props          {:tooltip (ds/meta (ds/alt "v"))
+                          :command (ds/c-mod "alt+v")
+                          :subsections [:edit]
+                          :fn #(st/emit! (dw/paste-selected-props))}
+
    :delete               {:tooltip (ds/supr)
                           :command ["del" "backspace"]
                           :subsections [:edit]

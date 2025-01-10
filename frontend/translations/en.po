@@ -5994,6 +5994,21 @@ msgstr "Copy"
 msgid "workspace.shape.menu.copy_link"
 msgstr "Copy link to clipboard"
 
+msgid "workspace.shape.menu.copy_paste_as"
+msgstr "Copy/Paste as ..."
+
+msgid "workspace.shape.menu.copy_css"
+msgstr "Copy as CSS"
+
+msgid "workspace.shape.menu.copy_css_nested"
+msgstr "Copy as CSS (nested layers)"
+
+msgid "workspace.shape.menu.copy_props"
+msgstr "Copy properties"
+
+msgid "workspace.shape.menu.paste_props"
+msgstr "Paste properties"
+
 #: src/app/main/ui/workspace/sidebar/assets/common.cljs:431
 msgid "workspace.shape.menu.create-annotation"
 msgstr "Create annotation"
@@ -6956,3 +6971,4 @@ msgstr "Notifications"
 
 msgid "comments.mentions.not-found"
 msgstr "No people found for @%s"
+
